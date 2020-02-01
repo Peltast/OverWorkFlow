@@ -1,4 +1,4 @@
-require(['WireTree', 'Signal'], function(WireTree, Signal) {
+require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame) {
 
     $(function() {
         GameStatus = GameState.PRELOADING;
@@ -50,18 +50,21 @@ require(['WireTree', 'Signal'], function(WireTree, Signal) {
 
         createTreeGame();
         createMetaGame();
+        gameArea.addChild(TreeGameArea, MetaGameArea.metagameContainer);
 
         GameStatus = GameState.RUNNING;
     }
     function createTreeGame() {
+        TreeGameArea = new createjs.Container();
+
         var treeGameBG = new createjs.Shape();
-        treeGameBG.graphics.beginFill("#1d2b53").drawRect(4, 4, 476,632);
-        gameArea.addChild(treeGameBG);
+        treeGameBG.graphics.beginFill("#1d2b53").drawRect(4, 4, 476, 632);
+        TreeGameArea.addChild(treeGameBG);
         
         ExecutiveTree = new WireTree();
         ExecutiveTree.treeContainer.x = 220;
         ExecutiveTree.treeContainer.y = StageHeight * .05;
-        gameArea.addChild(ExecutiveTree.treeContainer);
+        TreeGameArea.addChild(ExecutiveTree.treeContainer);
 
         var testSignal = new Signal();
         testSignal.setSignalToNode(ExecutiveTree.nodeMap["Row2Right"]);
@@ -69,7 +72,10 @@ require(['WireTree', 'Signal'], function(WireTree, Signal) {
         ExecutiveTree.addSignal(testSignal);
     }
     function createMetaGame() {
+        MetaGameArea = new MetaGame();
 
+        MetaGameArea.metagameContainer.x = 488;
+        MetaGameArea.metagameContainer.y = 4;
     }
 
     function runGame(deltaTime) {
@@ -77,11 +83,25 @@ require(['WireTree', 'Signal'], function(WireTree, Signal) {
         GameSignals.forEach((signal) => {
             signal.update(deltaTime);
 
+            if (signal.message !== null) {
+                handleSignalMessage(signal.message);
+                signal.message = null;
+            }
+
             if (signal.targetNode == null)
                 signal.setSignalToNode(ExecutiveTree.rootNode);
+            
         });
 
+        MetaGameArea.update(deltaTime);
+
         Stage.update();
+    }
+    
+    function handleSignalMessage(message) {
+        if (message === SignalMessage.MOVELEFT || message === SignalMessage.MOVECENTER || message === SignalMessage.MOVERIGHT) {
+            MetaGameArea.changePlayerMovement(message);
+        }
     }
 
 });

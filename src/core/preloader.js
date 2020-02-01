@@ -23,10 +23,10 @@ function preloaderInit() {
         
         { "src": "metadisplay/background.png", id: "Background" },
         { "src": "metadisplay/player.png", id: "Player" },
-        { "src": "metadisplay/station.png", id: "Station" },
+        { "src": "metadisplay/station.png", id: "Station" }, { "src": "metadisplay/stationCursor.png", id: "StationCursor" }
     ];
     soundManifest = [
-        
+
     ];
 
     manifestTotal = imageManifest.length + soundManifest.length;

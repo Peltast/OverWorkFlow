@@ -22,7 +22,11 @@ const GameState = {
 const NodeType = {
     "ROOT": 1, 
     "INTERSECTION": 2,
-    "ENDLEFT": 3, "ENDRIGHT": 4, "ENDCENTER": 5, "ENDNULL": 6
+    "ENDLEFT": 3, "ENDRIGHT": 4, "ENDCENTER": 5, "ENDLEFTNULL": 6, "ENDRIGHTNULL": 7
+}
+const SignalMessage = {
+    "MOVELEFT": 1, "MOVERIGHT": 2, "MOVECENTER": 3,
+    "OFFSIDESLEFT": 4, "OFFSIDESRIGHT": 5
 }
 
 function mainInit() {

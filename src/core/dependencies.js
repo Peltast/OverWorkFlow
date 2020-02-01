@@ -7,6 +7,7 @@ require.config({
 
         "wireTree": "src/objects/wireTree",
         "signal": "src/objects/signal",
+        "metagame": "src/objects/metagame",
 
         "game": "src/core/game"
     }
@@ -16,7 +17,7 @@ requirejs(['point'], function() {
 
 requirejs(['gameObject'], function() {
 
-requirejs(['wireTree', 'signal'], function() {
+requirejs(['wireTree', 'signal', 'metagame'], function() {
 
 requirejs(['game']);
 

@@ -7,6 +7,7 @@ define("Signal", ['Point'], function(Point) {
             this.signalContainer = new createjs.Container();
             this.targetNode;
             this.currentConnection;
+            this.message = null;
 
             this.spriteSize = new Point(44, 44);
 
@@ -42,7 +43,7 @@ define("Signal", ['Point'], function(Point) {
         }
 
         update(deltaTime) {
-            var dT = deltaTime / 15;
+            var dT = deltaTime / 7;
 
             if (this.currentConnection) {
                 if (this.currentConnection.isBezierCurve()) {
@@ -54,10 +55,25 @@ define("Signal", ['Point'], function(Point) {
                 }
 
                 if (this.hasTraveledConnection()) {
+                    this.checkNodeMessage();
+                    
                     this.setSignalToNode(this.targetNode);
                 }
             }
 
+        }
+
+        checkNodeMessage() {
+            if (this.targetNode.type === NodeType.ENDLEFT)
+                this.message = SignalMessage.MOVELEFT;
+            else if (this.targetNode.type === NodeType.ENDRIGHT)
+                this.message = SignalMessage.MOVERIGHT;
+            else if (this.targetNode.type === NodeType.ENDCENTER)
+                this.message = SignalMessage.MOVECENTER;
+            else if (this.targetNode.type === NodeType.ENDLEFTNULL)
+                this.message = SignalMessage.OFFSIDESLEFT;
+            else if (this.targetNode.type === NodeType.ENDRIGHTNULL)
+                this.message = SignalMessage.OFFSIDESRIGHT;
         }
 
         hasTraveledConnection() {

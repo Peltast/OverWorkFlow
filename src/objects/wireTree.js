@@ -36,11 +36,11 @@ define("WireTree", ['Point'], function(Point) {
             var row3RL = this.createNode("Row3RL", NodeType.INTERSECTION, new Point(50, row3Y));
             var row3RR = this.createNode("Row3RR", NodeType.INTERSECTION, new Point(150, row3Y));
 
-            var row4endLNull = this.createNode("Row4LNull", NodeType.ENDNULL, new Point(-200, row4Y));
+            var row4endLNull = this.createNode("Row4LNull", NodeType.ENDLEFTNULL, new Point(-200, row4Y));
             var row4endLeft = this.createNode("Row4endLeft", NodeType.ENDLEFT, new Point(-100, row4Y));
             var row4endCenter = this.createNode("Row4endCenter", NodeType.ENDCENTER, new Point(0, row4Y));
             var row4endRight = this.createNode("Row4endRight", NodeType.ENDRIGHT, new Point(100, row4Y));
-            var row4endRNull = this.createNode("Row4RNull", NodeType.ENDNULL, new Point(200, row4Y));
+            var row4endRNull = this.createNode("Row4RNull", NodeType.ENDRIGHTNULL, new Point(200, row4Y));
 
             this.addChildNode(root, row1);
 
@@ -168,7 +168,7 @@ define("WireTree", ['Point'], function(Point) {
                     spriteName = "InputNode";
                 else if (this.type === NodeType.ENDRIGHT)
                     spriteName = "InputNodeRight";
-                else if (this.type === NodeType.ENDNULL)
+                else if (this.type === NodeType.ENDLEFTNULL || this.type === NodeType.ENDRIGHTNULL)
                     spriteName = "ErrorNode";
 
                 spriteSheet = new createjs.SpriteSheet({
