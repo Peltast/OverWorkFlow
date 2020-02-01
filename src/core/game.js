@@ -1,4 +1,4 @@
-require([], function() {
+require(['WireTree'], function(WireTree) {
 
     $(function() {
         GameStatus = GameState.PRELOADING;
@@ -16,6 +16,8 @@ require([], function() {
     var gameDate;
     var lastFrameTimestamp;
 
+    var ExecutiveTree;
+
     function updateGame() {
         if (!isFinishedLoading()) {
             return;
@@ -28,7 +30,7 @@ require([], function() {
             var currentTime = gameDate.getTime();
             var deltaTime = currentTime - lastFrameTimestamp;
             lastFrameTimestamp = currentTime;
-            
+
             runGame(deltaTime);
         }
     }
@@ -38,13 +40,17 @@ require([], function() {
         lastFrameTimestamp = gameDate.getTime();
 
         gameBG = new createjs.Shape();
-        gameBG.graphics.beginFill("#000000").drawRect(0, 0, StageWidth, StageHeight);
+        gameBG.graphics.beginFill("#1d2b53").drawRect(0, 0, StageWidth, StageHeight);
         gameArea = new createjs.Container();
         gameUI = new createjs.Container();
 
         Stage.addChild(gameBG, gameArea, gameUI);
 
         // set up game objects
+        ExecutiveTree = new WireTree();
+        ExecutiveTree.treeContainer.x = StageWidth / 2;
+        ExecutiveTree.treeContainer.y = StageHeight * .2;
+        gameArea.addChild(ExecutiveTree.treeContainer);
 
         // add event listeners
 
@@ -52,7 +58,7 @@ require([], function() {
     }
 
     function runGame(deltaTime) {
-
+        Stage.update();
     }
 
 });

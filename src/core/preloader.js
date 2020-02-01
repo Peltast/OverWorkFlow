@@ -1,5 +1,5 @@
 $(function() {
-    init();
+    preloaderInit();
 });
 
 var imageManifest;
@@ -9,17 +9,24 @@ var assetLoader;
 var manifestTotal;
 var loadCount = 0;
 
-var gameAssets = [];
-var soundAssets = [];
+var gameAssets = {};
+var soundAssets = {};
 
-function init() {
+function preloaderInit() {
     
-    imageManifest = [];
+    imageManifest = [
+        { "src": "tree/Node.png", id: "Node" },
+        { "src": "tree/InputNode.png", id: "InputNode" }, { "src": "tree/InputNodeLeft.png", id: "InputNodeLeft" }, { "src": "tree/InputNodeRight.png", id: "InputNodeRight" },
+        { "src": "tree/ErrorNode.png", id: "ErrorNode" },
+        { "src": "tree/IntersectionNode.png", id: "IntersectionNode" }
+    ];
     soundManifest = [];
 
     manifestTotal = imageManifest.length + soundManifest.length;
 
     assetLoader = new createjs.LoadQueue(false);
+    assetLoader.addEventListener("complete", handleAssetsLoaded);
+    assetLoader.loadManifest(imageManifest, true, ImageRoot);
 };
 
 function isFinishedLoading() {

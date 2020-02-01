@@ -2,13 +2,22 @@ require.config({
     urlArgs: "bust=" + (new Date()).getTime(),
     waitSeconds: 200,
     paths: {
-        "test": "src/test",
+        "point": "src/objects/point",
+        "gameObject": "src/objects/gameObject",
+        "wireTree": "src/objects/wireTree",
 
-        "game": "src/game"
+        "game": "src/core/game"
     }
 });
 
-requirejs(['test'], function() {
+requirejs(['point'], function() {
 
-    requirejs(['game']);
+requirejs(['gameObject'], function() {
+
+requirejs(['wireTree'], function() {
+
+requirejs(['game']);
+
+});
+});
 });
