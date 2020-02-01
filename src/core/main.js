@@ -28,6 +28,9 @@ const SignalMessage = {
     "MOVELEFT": 1, "MOVERIGHT": 2, "MOVECENTER": 3,
     "OFFSIDESLEFT": 4, "OFFSIDESRIGHT": 5
 }
+const WorkItemState = {
+    "INACTIVE": 1, "BUILDING": 2, "ACTIVE": 3, "CLEARING": 4
+}
 
 function mainInit() {
     Stage = new createjs.Stage("gameCanvas", { "antialias": false });

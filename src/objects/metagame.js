@@ -11,6 +11,9 @@ define("MetaGame", ['Point'], function(Point) {
 
             this.boundsWidth = 468;
 
+            this.workGenerationInterval = 30000;
+            this.workGenerationCountdown = this.workGenerationInterval / 5;
+
             this.drawDisplay();
             this.drawCursor();
         }
@@ -29,7 +32,7 @@ define("MetaGame", ['Point'], function(Point) {
             this.metagameContainer.addChild(this.player.playerContainer);
 
             for (let x = 36; x <= 416; x += 36) {
-                var station = new Station(new Point(x, 356));
+                var station = new Station(new Point(x, 356), 0);
                 this.stations.push(station);
                 this.metagameContainer.addChild(station.stationContainer);
                 x += 52;
@@ -55,7 +58,20 @@ define("MetaGame", ['Point'], function(Point) {
             else if (this.player.playerContainer.x + this.player.size.X > this.boundsWidth)
                 this.player.playerContainer.x = this.boundsWidth - this.player.size.X;
 
+            for (let i = 0; i < this.stations.length; i++) {
+                if (this.stations[i] == this.activeStation)
+                    continue;
+                this.stations[i].update();
+            }
+
             this.checkStationStatus();
+            this.updateWorkGeneration(deltaTime);
+
+            if (this.activeStation) {
+                this.activeStation.reduceStationWork(deltaTime);
+                if (!this.activeStation.stationHasWork())
+                    this.activeStation.generatingWork = false;
+            }
         }
 
         changePlayerMovement(message) {
@@ -95,6 +111,26 @@ define("MetaGame", ['Point'], function(Point) {
                     this.metagameContainer.removeChild(this.cursor);
                 this.activeStation = null;
             }
+        }
+
+        updateWorkGeneration(deltaTime) {
+            this.workGenerationCountdown -= deltaTime;
+
+            if (this.workGenerationCountdown <= 0) {
+                this.workGenerationCountdown = this.workGenerationInterval;
+
+                var stationRoulette = [];
+                for (let i = 0; i < this.stations.length; i++) {
+                    if (!this.stations[i].stationHasWork() && this.stations[i] !== this.activeStation)
+                        stationRoulette.push(this.stations[i]);
+                }
+
+                if (stationRoulette.length == 0)
+                    return;
+                var rouletteSpin = Math.floor( Math.random() * stationRoulette.length);
+                this.stations[rouletteSpin].generateWork();
+            }
+
         }
 
     }
@@ -154,12 +190,16 @@ define("MetaGame", ['Point'], function(Point) {
     }
 
     class Station {
-        constructor(location) {
+        constructor(location, startingWork = 0) {
             this.location = location;
             this.stationContainer = new createjs.Container();
             this.size = new Point(52, 120);
+            this.generatingWork = false;
+            
+            this.workItems = [];
 
             this.drawStation();
+            this.drawWorkItems(startingWork);
         }
         drawStation() {
             var spriteSheet = new createjs.SpriteSheet({
@@ -174,6 +214,112 @@ define("MetaGame", ['Point'], function(Point) {
             this.stationContainer.x = this.location.X;
             this.stationContainer.y = this.location.Y;
         }
+        drawWorkItems(startingWork) {
+            var x = 8;
+            var y = 100;
+
+            for (let i = 0; i < 5; i++) {
+                var item = new WorkItem(startingWork > 0);
+                item.workContainer.x = x;
+                item.workContainer.y = y;
+                this.stationContainer.addChild(item.workContainer);
+                this.workItems.push(item);
+
+                if (startingWork > 0)
+                    startingWork -= 1;
+                y -= 16;
+            }
+        }
+
+        generateWork() {
+            this.generatingWork = true;
+        }
+        update() {
+            if (this.generatingWork) {
+                for (let i = 0; i < this.workItems.length; i++) {
+                    var item = this.workItems[i];
+                    if (item.status === WorkItemState.ACTIVE) {
+                        continue;
+                    }
+                    else {
+                        item.increaseWork();
+                        return;
+                    }
+                }
+            }
+        }
+
+        reduceStationWork(deltaTime) {
+            for (let i = this.workItems.length - 1; i >= 0; i--) {
+                var item = this.workItems[i];
+                if (item.status !== WorkItemState.INACTIVE) {
+                    console.log("Index: " + i + ", " + item.status);
+                    item.reduceWork();
+                    return;
+                }
+            }
+        }
+
+        stationHasWork() {
+            for (let i = this.workItems.length - 1; i >= 0; i--) {
+                var item = this.workItems[i];
+                if (item.status !== WorkItemState.INACTIVE) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    class WorkItem {
+        constructor(active = false) {
+            this.workContainer = new createjs.Container();
+            this.active = active;
+            this.status = active ? WorkItemState.ACTIVE : WorkItemState.INACTIVE;
+
+            this.drawShapes();
+        }
+        drawShapes() {
+            this.workShape = new createjs.Shape();
+            this.workShape.y = 12;
+            this.workShape.graphics.beginFill("#ff004d").drawRect(0, 0, 36, 12);
+            if (!this.active)
+                this.workShape.scaleY = 0;
+            else
+                this.workShape.scaleY = -1;
+
+            this.freeShape = new createjs.Shape();
+            this.freeShape.graphics.beginFill("#00e436").drawRect(0, 0, 36, 12);
+
+            this.workContainer.addChild(this.freeShape, this.workShape);
+        }
+
+        increaseWork() {
+            if (this.status === WorkItemState.INACTIVE)
+                this.status = WorkItemState.BUILDING;
+
+            this.workShape.scaleY -= 0.002;
+
+            if (this.workShape.scaleY <= -1) {
+                this.workShape.scaleY = -1;
+                this.active = true;
+                this.status = WorkItemState.ACTIVE;
+            }
+        }
+        reduceWork() {
+            if (this.status === WorkItemState.BUILDING)
+                this.status = WorkItemState.CLEARING;
+
+            this.workShape.scaleY += 0.01;
+
+            if (this.workShape.scaleY >= 0) {
+                this.workShape.scaleY = 0;
+                this.active = false;
+                this.status = WorkItemState.INACTIVE;
+            }
+        }
+
     }
 
     return MetaGame;

@@ -66,11 +66,17 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
         ExecutiveTree.treeContainer.y = StageHeight * .05;
         TreeGameArea.addChild(ExecutiveTree.treeContainer);
 
-        var testSignal = new Signal();
-        testSignal.setSignalToNode(ExecutiveTree.nodeMap["Row2Right"]);
-        GameSignals.push(testSignal);
-        ExecutiveTree.addSignal(testSignal);
+        addSignal("Row1");
+        addSignal("Row2Right");
+        addSignal("Row3RL");
     }
+    function addSignal(startNodeID) {
+        var signal = new Signal();
+        signal.setSignalToNode(ExecutiveTree.nodeMap[startNodeID]);
+        GameSignals.push(signal);
+        ExecutiveTree.addSignal(signal);
+    }
+
     function createMetaGame() {
         MetaGameArea = new MetaGame();
 

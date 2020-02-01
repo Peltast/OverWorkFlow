@@ -43,7 +43,7 @@ define("Signal", ['Point'], function(Point) {
         }
 
         update(deltaTime) {
-            var dT = deltaTime / 7;
+            var dT = deltaTime / 15;
 
             if (this.currentConnection) {
                 if (this.currentConnection.isBezierCurve()) {
