@@ -6,6 +6,8 @@ var Stage;
 var StageWidth = 960;
 var StageHeight = 640;
 var GameScale = 1;
+var TargetFrameRate = 60;
+var FrameLength = 1000 / TargetFrameRate;
 
 var ImageRoot = "./lib/images/";
 var SoundRoot = "./lib/sounds/";
@@ -26,7 +28,7 @@ const NodeType = {
 function mainInit() {
     Stage = new createjs.Stage("gameCanvas", { "antialias": false });
     Stage.enableMouseOver(20);
-    createjs.Ticker.framerate = 60;
+    createjs.Ticker.framerate = TargetFrameRate;
 
     gameCanvas.setAttribute("tabindex", "0");
     gameCanvas.addEventListener("mouseover", function() {

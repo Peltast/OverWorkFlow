@@ -20,23 +20,27 @@ define("WireTree", ['Point'], function(Point) {
         }
 
         setupTree() {
+            var row1Y = StageHeight * .25 - 50;
+            var row2Y = StageHeight * .5 - 50;
+            var row3Y = StageHeight * .75 - 50;
+            var row4Y = StageHeight * .92 - 50;
 
-            var root = this.createNode("Root", NodeType.ROOT, new Point(0, 10));
-            var row1 = this.createNode("Row1", NodeType.INTERSECTION, new Point(0, 100));
+            var root = this.createNode("Root", NodeType.ROOT, new Point(0, 0));
+            var row1 = this.createNode("Row1", NodeType.INTERSECTION, new Point(0, row1Y));
 
-            var row2Left = this.createNode("Row2Left", NodeType.INTERSECTION, new Point(-100, 200));
-            var row2Right = this.createNode("Row2Right", NodeType.INTERSECTION, new Point(100, 200));
+            var row2Left = this.createNode("Row2Left", NodeType.INTERSECTION, new Point(-100, row2Y));
+            var row2Right = this.createNode("Row2Right", NodeType.INTERSECTION, new Point(100, row2Y));
             
-            var row3LL = this.createNode("Row3LL", NodeType.INTERSECTION, new Point(-150, 300));
-            var row3LR = this.createNode("Row3LR", NodeType.INTERSECTION, new Point(-50, 300));
-            var row3RL = this.createNode("Row3RL", NodeType.INTERSECTION, new Point(50, 300));
-            var row3RR = this.createNode("Row3RR", NodeType.INTERSECTION, new Point(150, 300));
+            var row3LL = this.createNode("Row3LL", NodeType.INTERSECTION, new Point(-150, row3Y));
+            var row3LR = this.createNode("Row3LR", NodeType.INTERSECTION, new Point(-50, row3Y));
+            var row3RL = this.createNode("Row3RL", NodeType.INTERSECTION, new Point(50, row3Y));
+            var row3RR = this.createNode("Row3RR", NodeType.INTERSECTION, new Point(150, row3Y));
 
-            var row4endLNull = this.createNode("Row4LNull", NodeType.ENDNULL, new Point(-200, 400));
-            var row4endLeft = this.createNode("Row4endLeft", NodeType.ENDLEFT, new Point(-100, 400));
-            var row4endCenter = this.createNode("Row4endCenter", NodeType.ENDCENTER, new Point(0, 400));
-            var row4endRight = this.createNode("Row4endRight", NodeType.ENDRIGHT, new Point(100, 400));
-            var row4endRNull = this.createNode("Row4RNull", NodeType.ENDNULL, new Point(200, 400));
+            var row4endLNull = this.createNode("Row4LNull", NodeType.ENDNULL, new Point(-200, row4Y));
+            var row4endLeft = this.createNode("Row4endLeft", NodeType.ENDLEFT, new Point(-100, row4Y));
+            var row4endCenter = this.createNode("Row4endCenter", NodeType.ENDCENTER, new Point(0, row4Y));
+            var row4endRight = this.createNode("Row4endRight", NodeType.ENDRIGHT, new Point(100, row4Y));
+            var row4endRNull = this.createNode("Row4RNull", NodeType.ENDNULL, new Point(200, row4Y));
 
             this.addChildNode(root, row1);
 
@@ -82,17 +86,21 @@ define("WireTree", ['Point'], function(Point) {
         }
 
         addChildNode(parent, child) {
-            parent.addChildNode(child);
 
             var curveData = {};
             if (parent.origin.X !== child.origin.X)
                 curveData = this.getConnectionCurve(parent, child);
-
             var connection = new TreeConnection(parent.origin, child.origin, curveData);
-            this.connections[parent.id + "-" + child.id] = connection;
-            parent.childConnections.push(connection);
             
+            var childData = {"node": child, "connection": connection};
+            parent.addChildNode(childData);
+            
+            this.connections[parent.id + "-" + child.id] = connection;
             this.connectionLayer.addChild(connection.connectionContainer);
+        }
+
+        addSignal(newSignal) {
+            this.signalLayer.addChild(newSignal.signalContainer);
         }
 
         getConnectionCurve(parent, child) {
@@ -119,14 +127,13 @@ define("WireTree", ['Point'], function(Point) {
             this.size = size;
             this.color = color;
             this.location = location;
-            this.origin = new Point(location.X - this.size, location.Y - this.size);
+            this.origin = new Point(location.X + this.size + 2, location.Y + this.size);
 
             this.nodeContainer = new createjs.Container();
             this.nodeContainer.x = location.X;
             this.nodeContainer.y = location.Y;
 
-            this.childNodes = [];
-            this.childConnections = [];
+            this.childNodeData = [];
 
             this.orientation = "";
             this.state = "idle";
@@ -173,8 +180,8 @@ define("WireTree", ['Point'], function(Point) {
             
             this.nodeSprite = new createjs.Sprite(spriteSheet);
             this.nodeSprite.gotoAndPlay(this.orientation + this.state);
-            this.nodeSprite.x = -this.size - spriteSize.X / 2;
-            this.nodeSprite.y = -this.size - spriteSize.Y / 2;
+            // this.nodeSprite.x = -this.size - spriteSize.X / 2;
+            // this.nodeSprite.y = -this.size - spriteSize.Y / 2;
 
             this.nodeContainer.addChild(this.nodeSprite);
         }
@@ -213,15 +220,27 @@ define("WireTree", ['Point'], function(Point) {
             if (newDirection == "left" || newDirection == "right")
                 this.orientation = newDirection;
 
-            if (this.childConnections.length >= 2) {
-                this.childConnections[0].setActive(this.orientation == "left");
-                this.childConnections[1].setActive(this.orientation == "right");
+            if (this.childNodeData.length >= 2) {
+                this.childNodeData[0].connection.setActive(this.orientation == "left");
+                this.childNodeData[1].connection.setActive(this.orientation == "right");
             }
             this.nodeSprite.gotoAndPlay(this.orientation + this.state);
         }
 
-        addChildNode(childNode) {
-            this.childNodes.push(childNode);
+        addChildNode(childData) {
+            this.childNodeData.push(childData);
+        }
+
+        getTargetNodeData() {
+            if (this.childNodeData.length == 1) {
+                return this.childNodeData[0];
+            }
+            else if (this.childNodeData.length == 2 && this.type === NodeType.INTERSECTION) {
+                return ( this.orientation == "left" ? this.childNodeData[0] : this.childNodeData[1] );
+            }
+            else {
+                return null;
+            }
         }
 
     }
@@ -234,11 +253,14 @@ define("WireTree", ['Point'], function(Point) {
             this.lineData = lineData;
 
             this.activeColor = "#fff1e8";
-            this.inactiveColor = "#83769c";
+            this.inactiveColor = "#5f574f";
             this.active = true;
 
             this.connectionContainer = new createjs.Container();
             this.drawConnection();
+        }
+        isBezierCurve() {
+            return this.lineData["bezier"];
         }
 
         drawConnection() {
@@ -249,7 +271,7 @@ define("WireTree", ['Point'], function(Point) {
             this.connectionLine.graphics.setStrokeStyle(3);
             this.connectionLine.graphics.beginStroke(this.active ? this.activeColor : this.inactiveColor);
 
-            if (this.lineData["bezier"]) {
+            if (this.isBezierCurve()) {
                 this.drawBezierCurve();
             }
             else {

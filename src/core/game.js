@@ -1,4 +1,4 @@
-require(['WireTree'], function(WireTree) {
+require(['WireTree', 'Signal'], function(WireTree, Signal) {
 
     $(function() {
         GameStatus = GameState.PRELOADING;
@@ -13,10 +13,13 @@ require(['WireTree'], function(WireTree) {
     var gameArea;
     var gameUI;
 
-    var gameDate;
+    var TreeGameArea;
+    var MetaGameArea;
+
     var lastFrameTimestamp;
 
     var ExecutiveTree;
+    var GameSignals = [];
 
     function updateGame() {
         if (!isFinishedLoading()) {
@@ -27,7 +30,7 @@ require(['WireTree'], function(WireTree) {
             launchGame();
         }
         else if (GameStatus === GameState.RUNNING) {
-            var currentTime = gameDate.getTime();
+            var currentTime = new Date().getTime();
             var deltaTime = currentTime - lastFrameTimestamp;
             lastFrameTimestamp = currentTime;
 
@@ -36,28 +39,48 @@ require(['WireTree'], function(WireTree) {
     }
 
     function launchGame() {
-        gameDate = new Date();
-        lastFrameTimestamp = gameDate.getTime();
+        lastFrameTimestamp = new Date().getTime();
 
         gameBG = new createjs.Shape();
-        gameBG.graphics.beginFill("#1d2b53").drawRect(0, 0, StageWidth, StageHeight);
+        gameBG.graphics.beginFill("#ffccaa").drawRect(0, 0, StageWidth, StageHeight);
         gameArea = new createjs.Container();
         gameUI = new createjs.Container();
 
         Stage.addChild(gameBG, gameArea, gameUI);
 
-        // set up game objects
-        ExecutiveTree = new WireTree();
-        ExecutiveTree.treeContainer.x = StageWidth / 2;
-        ExecutiveTree.treeContainer.y = StageHeight * .2;
-        gameArea.addChild(ExecutiveTree.treeContainer);
-
-        // add event listeners
+        createTreeGame();
+        createMetaGame();
 
         GameStatus = GameState.RUNNING;
     }
+    function createTreeGame() {
+        var treeGameBG = new createjs.Shape();
+        treeGameBG.graphics.beginFill("#1d2b53").drawRect(4, 4, 476,632);
+        gameArea.addChild(treeGameBG);
+        
+        ExecutiveTree = new WireTree();
+        ExecutiveTree.treeContainer.x = 220;
+        ExecutiveTree.treeContainer.y = StageHeight * .05;
+        gameArea.addChild(ExecutiveTree.treeContainer);
+
+        var testSignal = new Signal();
+        testSignal.setSignalToNode(ExecutiveTree.nodeMap["Row2Right"]);
+        GameSignals.push(testSignal);
+        ExecutiveTree.addSignal(testSignal);
+    }
+    function createMetaGame() {
+
+    }
 
     function runGame(deltaTime) {
+
+        GameSignals.forEach((signal) => {
+            signal.update(deltaTime);
+
+            if (signal.targetNode == null)
+                signal.setSignalToNode(ExecutiveTree.rootNode);
+        });
+
         Stage.update();
     }
 

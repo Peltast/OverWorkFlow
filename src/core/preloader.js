@@ -18,9 +18,16 @@ function preloaderInit() {
         { "src": "tree/Node.png", id: "Node" },
         { "src": "tree/InputNode.png", id: "InputNode" }, { "src": "tree/InputNodeLeft.png", id: "InputNodeLeft" }, { "src": "tree/InputNodeRight.png", id: "InputNodeRight" },
         { "src": "tree/ErrorNode.png", id: "ErrorNode" },
-        { "src": "tree/IntersectionNode.png", id: "IntersectionNode" }
+        { "src": "tree/IntersectionNode.png", id: "IntersectionNode" },
+        { "src": "tree/Signal.png", id: "Signal" },
+        
+        { "src": "metadisplay/background.png", id: "Background" },
+        { "src": "metadisplay/player.png", id: "Player" },
+        { "src": "metadisplay/station.png", id: "Station" },
     ];
-    soundManifest = [];
+    soundManifest = [
+        
+    ];
 
     manifestTotal = imageManifest.length + soundManifest.length;
 

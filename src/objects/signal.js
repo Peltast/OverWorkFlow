@@ -1,0 +1,96 @@
+define("Signal", ['Point'], function(Point) {
+
+    class Signal {
+
+        constructor() {
+            this.location = new Point(0, 0);
+            this.signalContainer = new createjs.Container();
+            this.targetNode;
+            this.currentConnection;
+
+            this.spriteSize = new Point(44, 44);
+
+            this.drawSignal();
+        }
+        drawSignal() {
+            var spriteSheet = new createjs.SpriteSheet({
+                "images": [gameAssets["Signal"]], 
+                "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 0, "regY": 0, "count": 1},
+                animations: { idle: 0 }
+            });
+            this.signalSprite = new createjs.Sprite(spriteSheet);
+            this.signalSprite.gotoAndPlay("idle");
+
+            this.signalContainer.addChild(this.signalSprite);
+        }
+
+        setSignalToNode(node) {
+            this.location = node.origin.get();
+
+            this.signalContainer.x = this.location.X - this.spriteSize.X / 2;
+            this.signalContainer.y = this.location.Y - this.spriteSize.Y / 2;
+
+            var nextNodeData = node.getTargetNodeData();
+            if (nextNodeData != null) {
+                this.targetNode = nextNodeData.node;
+                this.currentConnection = nextNodeData.connection;
+            }
+            else {
+                this.targetNode = null;
+                this.currentConnection = null;
+            }
+        }
+
+        update(deltaTime) {
+            var dT = deltaTime / 15;
+
+            if (this.currentConnection) {
+                if (this.currentConnection.isBezierCurve()) {
+                    this.moveAlongBezierCurve(dT);
+                }
+                else {
+                    this.location.Y += dT;
+                    this.signalContainer.y = this.location.Y - this.spriteSize.Y / 2;
+                }
+
+                if (this.hasTraveledConnection()) {
+                    this.setSignalToNode(this.targetNode);
+                }
+            }
+
+        }
+
+        hasTraveledConnection() {
+            return this.location.Y >= this.currentConnection.endPoint.Y;
+        }
+
+        moveAlongBezierCurve(dT) {
+            var start = this.currentConnection.startPoint.get();
+            var bezierA = this.currentConnection.lineData["controlA"];
+            var bezierB = this.currentConnection.lineData["controlB"];
+            var end = this.currentConnection.endPoint.get();
+
+            var deltaY = (this.location.Y + dT) - start.Y;
+            var totalDistance = end.Y - start.Y;
+            
+            var bezierProgress = this.getBezierPoint(deltaY / totalDistance, start, bezierA, bezierB, end);
+            this.location.X = bezierProgress.X;
+            this.location.Y += dT;
+            this.signalContainer.x = this.location.X - this.spriteSize.X / 2;
+            this.signalContainer.y = this.location.Y - this.spriteSize.Y / 2;
+        }
+        getBezierPoint(dT, start, c1, c2, end) {
+            var tI = (1 - dT);
+            var tI2 = tI * tI;
+            var tI3 = tI * tI * tI;
+
+            var dX = tI3 * start.X + 3 * tI2 * dT * c1.X + 3 * tI * dT * dT * c2.X + dT * dT * dT * end.X;
+            var dY = tI3 * start.Y + 3 * tI2 * dT * c1.Y + 3 * tI * dT * dT * c2.Y + dT * dT * dT * end.Y;
+
+            return new Point(dX, dY);
+        }
+
+    }
+
+    return Signal;
+});
