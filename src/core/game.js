@@ -91,9 +91,13 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
 
     function runGame(deltaTime) {
         var removeList = [];
+        var negativeSignalCount = 0;
 
         GameSignals.forEach((signal) => {
             signal.update(deltaTime);
+
+            if (signal.type === SignalType.NEGATIVE)
+                negativeSignalCount += 1;
 
             if (signal.message !== null) {
                 handleSignalMessage(signal.message);
@@ -110,13 +114,19 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
         });
         for (let i = 0; i < removeList.length; i++)
             removeSignal(removeList[i]);
+
         for (let j = 0; j < SignalGeneration.length; j++) {
             if (!SignalGeneration[j].node || !SignalGeneration[j].type)
                 continue;
+
+            if (negativeSignalCount >= 5 && SignalGeneration[j].type === SignalType.NEGATIVE)
+                continue;
+
             addSignal(SignalGeneration[j].node, SignalGeneration[j].type);
         }
         SignalGeneration = [];
 
+        ExecutiveTree.update(deltaTime);
         MetaGameArea.update(deltaTime);
 
         Stage.update();

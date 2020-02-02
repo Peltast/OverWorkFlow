@@ -136,7 +136,6 @@ define("MetaGame", ['Point'], function(Point) {
                 if (stationRoulette.length == 0)
                     return;
                 var rouletteSpin = Math.floor( Math.random() * stationRoulette.length);
-                console.log("Generating work at station xPos " + stationRoulette[rouletteSpin].location.X);
                 stationRoulette[rouletteSpin].generateWork();
             }
 
@@ -272,7 +271,7 @@ define("MetaGame", ['Point'], function(Point) {
             }
 
             this.overloadCount += 1;
-            if (this.overloadCount >= 180) {
+            if (this.overloadCount >= 240) {
                 this.overloadCount = 0;
                 SignalGeneration.push({"node": "Root", "type": SignalType.NEGATIVE });
             }

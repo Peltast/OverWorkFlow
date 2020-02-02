@@ -13,7 +13,6 @@ define("WireTree", ['Point'], function(Point) {
             this.rootNode;
             this.connections = {};
 
-            this.nodeColor = "#29adff";
             this.nodeSize = 20;
             
             this.setupTree();
@@ -78,7 +77,7 @@ define("WireTree", ['Point'], function(Point) {
                 return;
             }
 
-            var node = new TreeNode(id, type, this.nodeSize, this.nodeColor, location);
+            var node = new TreeNode(id, type, this.nodeSize, location);
             this.nodeLayer.addChild(node.nodeContainer);
             
             this.nodeMap[id] = node;
@@ -119,16 +118,23 @@ define("WireTree", ['Point'], function(Point) {
             }
         }
 
+        update(deltaTime) {
+            for (var id in this.nodeMap) {
+                var node = this.nodeMap[id];
+                node.update(deltaTime);
+            }
+        }
+
 
     }
 
     class TreeNode {
 
-        constructor(id, type, size, color, location) {
+        constructor(id, type, size, location) {
             this.id = id;
             this.type = type;
             this.size = size;
-            this.color = color;
+            this.spriteSize = new Point(48, 52);
             this.location = location;
             this.origin = new Point(location.X + this.size + 2, location.Y + this.size);
 
@@ -140,20 +146,30 @@ define("WireTree", ['Point'], function(Point) {
 
             this.orientation = "";
             this.state = "idle";
+            this.burnedOut = false;
+
+            this.burnoutTickTimerThreshold = 500;
+            this.burnoutTickThreshold = 3;
+            this.burnoutTickCount = 0;
+            this.burnoutLevel = 0;
+            this.lastSwitchTime;
+            this.cooldownTimer = 0;
 
             this.drawNode();
+            this.drawBurnoutMarkers();
+            this.drawBurntNode();
+            
             if (this.type === NodeType.INTERSECTION)
                 this.attachEventListeners();
         }
 
         drawNode() {
             var spriteSheet;
-            var spriteSize = new Point(48, 52);
 
             if (this.type === NodeType.INTERSECTION) {
                 spriteSheet = new createjs.SpriteSheet({
                     "images": [gameAssets["IntersectionNode"]], 
-                    "frames": {"width": spriteSize.X, "height": spriteSize.Y, "regX": 0, "regY": 0, "count": 6},
+                    "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 0, "regY": 0, "count": 6},
                     animations: { 
                         idle: 0, leftidle: 0, leftHover: 1, leftPress: 2,
                         rightidle: 3, rightHover: 4, rightPress: 5
@@ -176,15 +192,12 @@ define("WireTree", ['Point'], function(Point) {
 
                 spriteSheet = new createjs.SpriteSheet({
                     "images": [gameAssets[spriteName]], 
-                    "frames": {"width": spriteSize.X, "height": spriteSize.Y, "regX": 0, "regY": 0, "count": 1},
+                    "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 0, "regY": 0, "count": 1},
                     animations: { idle: 0 }
                 });
-            }
-            
+            }            
             this.nodeSprite = new createjs.Sprite(spriteSheet);
             this.nodeSprite.gotoAndPlay(this.orientation + this.state);
-            // this.nodeSprite.x = -this.size - spriteSize.X / 2;
-            // this.nodeSprite.y = -this.size - spriteSize.Y / 2;
 
             this.nodeContainer.addChild(this.nodeSprite);
         }
@@ -216,12 +229,75 @@ define("WireTree", ['Point'], function(Point) {
             });
         }
 
+        drawBurnoutMarkers() {
+            var spriteSheet = new createjs.SpriteSheet({
+                "images": [gameAssets["Embers"]], 
+                "frames": {"width": 20, "height": 32, "regX": 0, "regY": 0, "count": 8},
+                animations: { left: [0, 3, "left", .2], right: [4, 7, "right", .2] }
+            });
+
+            this.nwEmber = new createjs.Sprite(spriteSheet);
+            this.nwEmber.x = -8;
+            this.nwEmber.y = -20;
+            this.nwEmber.gotoAndPlay("left");
+            this.wEmber = new createjs.Sprite(spriteSheet);
+            this.wEmber.x = -20;
+            this.wEmber.gotoAndPlay("left");
+            this.swEmber = new createjs.Sprite(spriteSheet);
+            this.swEmber.x = -12;
+            this.swEmber.y = 28;
+            this.swEmber.gotoAndPlay("left");
+            this.neEmber = new createjs.Sprite(spriteSheet);
+            this.neEmber.x = 36;
+            this.neEmber.y = -20;
+            this.neEmber.gotoAndPlay("right");
+            this.eEmber = new createjs.Sprite(spriteSheet);
+            this.eEmber.x = 48;
+            this.eEmber.gotoAndPlay("right");
+            this.seEmber = new createjs.Sprite(spriteSheet);
+            this.seEmber.x = 40;
+            this.seEmber.y = 28;
+            this.seEmber.gotoAndPlay("right");
+        }
+        drawBurntNode() {
+            var spriteSheet = new createjs.SpriteSheet({
+                "images": [gameAssets["BurntNode"]], 
+                "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 0, "regY": 0, "count": 8},
+                animations: { idle: 0 }
+            });
+            this.burntSprite = new createjs.Sprite(spriteSheet);
+        }
+
+        removeBurnoutMarkers() {
+            this.nodeContainer.removeChild(this.swEmber, this.seEmber, this.wEmber, this.eEmber, this.nwEmber, this.neEmber);
+        }
+        drawBurnoutLevel(level) {
+            if (level < 0 || level > 3)
+                return;
+            if (level == 0) {
+                this.removeBurnoutMarkers();
+            }
+            else if (level == 1) {
+                this.removeBurnoutMarkers();
+                this.nodeContainer.addChild(this.swEmber, this.seEmber);
+            }
+            else if (level == 2) {
+                this.removeBurnoutMarkers();
+                this.nodeContainer.addChild(this.swEmber, this.seEmber, this.wEmber, this.eEmber);
+            }
+            else {
+                this.nodeContainer.addChild(this.nwEmber, this.wEmber, this.swEmber, this.neEmber, this.eEmber, this.seEmber);
+            }
+        }
+
         switchIntersection() {
             this.setIntersection(this.orientation == "left" ? "right" : "left");
         }
         setIntersection(newDirection = "") {
             if (this.type !== NodeType.INTERSECTION)
                 return;
+
+            this.checkBurnoutTick();
 
             if (newDirection == "left" || newDirection == "right")
                 this.orientation = newDirection;
@@ -232,11 +308,82 @@ define("WireTree", ['Point'], function(Point) {
             }
             this.nodeSprite.gotoAndPlay(this.orientation + this.state);
         }
+        checkBurnoutTick() {
+            if (this.burnoutLevel >= 4)
+                return;
+
+            var currentTime = new Date().getTime();
+            if (!this.lastSwitchTime) {
+                this.lastSwitchTime = currentTime;
+                return;
+            }
+            if (currentTime - this.lastSwitchTime < this.burnoutTickTimerThreshold) {
+                this.lastSwitchTime = currentTime;
+                this.cooldownTimer = 0;
+
+                this.incrementBurnoutTick();
+            }
+            else
+                this.lastSwitchTime = currentTime;
+        }
+        incrementBurnoutTick() {
+            this.burnoutTickCount += 1;
+
+            if (this.burnoutTickCount >= this.burnoutTickThreshold) {
+                this.burnoutTickCount = 0;
+
+                this.burnoutLevel += 1;
+                if (this.burnoutLevel <= 3)
+                    this.drawBurnoutLevel(this.burnoutLevel);
+                else
+                    this.createFireSignal();
+            }
+        }
+        createFireSignal() {
+            this.burnoutLevel = 0;
+            this.drawBurnoutLevel(this.burnoutLevel);
+
+            SignalGeneration.push({"node": this.id, "type": SignalType.BURNOUT });
+        }
+
+        burnNode() {
+            this.burnedOut = true;
+
+            this.nodeContainer.removeChild(this.nodeSprite);
+            this.nodeContainer.addChild(this.burntSprite);
+            this.burnoutLevel = 3;
+            this.drawBurnoutLevel(3);
+        }
+        coolOffNode() {
+            this.burnedOut = false;
+
+            this.nodeContainer.removeChild(this.burntSprite);
+            this.nodeContainer.addChild(this.nodeSprite);
+        }
+
+        update(deltaTime) {
+            this.checkCooldown(deltaTime);
+        }
+        checkCooldown(deltaTime) {
+            if (this.burnoutLevel == 0)
+                return;
+
+            this.cooldownTimer += deltaTime;
+            if (this.cooldownTimer >= this.burnoutTickTimerThreshold * 5) {
+                this.cooldownTimer = 0;
+
+                this.burnoutLevel -= 1;
+                this.drawBurnoutLevel(this.burnoutLevel);
+
+                if (this.burnoutLevel == 0 && this.burnedOut)
+                    this.coolOffNode();
+            }
+        }
 
         addChildNode(childData) {
             this.childNodeData.push(childData);
         }
-
+        
         getTargetNodeData() {
             if (this.childNodeData.length == 1) {
                 return this.childNodeData[0];

@@ -8,22 +8,36 @@ define("Signal", ['Point'], function(Point) {
             this.targetNode;
             this.currentConnection;
             this.message = null;
+            this.spriteSize = new Point(44, 44);
 
             this.type = type; 
 
-            this.spriteSize = new Point(44, 44);
+            this.inverseSpeed = 8;
+            if (this.type === SignalType.BURNOUT || this.type === SignalType.NEGATIVE)
+                this.inverseSpeed = 20;
 
             this.drawSignal();
         }
         drawSignal() {
-            var spriteName = "Signal";
-            if (this.type === SignalType.NEGATIVE)
-                spriteName = "NegativeSignal";
-            var spriteSheet = new createjs.SpriteSheet({
-                "images": [gameAssets[spriteName]], 
-                "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 22, "regY": 22, "count": 1},
-                animations: { idle: 0 }
-            });
+            if (this.type === SignalType.BURNOUT) {
+                this.spriteSize = new Point(36, 48);
+                var spriteSheet = new createjs.SpriteSheet({
+                    "images": [gameAssets["FireSignal"]], 
+                    "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 18, "regY": 24, "count": 5},
+                    animations: { idle: [0, 4, "idle", .2] }
+                });
+            }
+            else {
+                var spriteName = "Signal";
+                if (this.type === SignalType.NEGATIVE)
+                    spriteName = "NegativeSignal";
+                var spriteSheet = new createjs.SpriteSheet({
+                    "images": [gameAssets[spriteName]], 
+                    "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 22, "regY": 22, "count": 1},
+                    animations: { idle: 0 }
+                });
+            }
+
             this.signalSprite = new createjs.Sprite(spriteSheet);
             this.signalSprite.gotoAndPlay("idle");
 
@@ -41,7 +55,12 @@ define("Signal", ['Point'], function(Point) {
                 this.targetNode = nextNodeData.node;
                 this.currentConnection = nextNodeData.connection;
 
-                if (this.targetNode.isEndNode() && this.type === SignalType.NEGATIVE) {
+                if (this.targetNode.burnedOut) {
+                    if (this.type === SignalType.BURNOUT)
+                        node.burnNode();
+                    this.targetNode = null;
+                }
+                else if (this.targetNode.isEndNode() && this.type === SignalType.NEGATIVE) {
                     this.targetNode = null;
                     node.switchIntersection();
                 }
@@ -49,16 +68,16 @@ define("Signal", ['Point'], function(Point) {
             else {
                 this.targetNode = null;
                 this.currentConnection = null;
+
+                if (this.type === SignalType.BURNOUT)
+                    node.burnNode();
             }
         }
 
         update(deltaTime) {
-            var dT = deltaTime / 8;
+            var dT = deltaTime / this.inverseSpeed;
 
-            this.signalContainer.rotation += this.type === SignalType.NEGATIVE ? 6 : -3;
-
-            if (this.signalContainer.rotation < -360)
-                this.signalContainer.rotation += 360;
+            this.rotateSignal();
 
             if (this.currentConnection) {
                 if (this.currentConnection.isBezierCurve()) {
@@ -66,7 +85,7 @@ define("Signal", ['Point'], function(Point) {
                 }
                 else {
                     this.location.Y += dT;
-                    this.signalContainer.y = this.location.Y - this.spriteSize.Y / 2;
+                    this.signalContainer.y = 12 + this.location.Y - this.spriteSize.Y / 2;
                 }
 
                 if (this.hasTraveledConnection()) {
@@ -77,8 +96,22 @@ define("Signal", ['Point'], function(Point) {
             }
 
         }
+        rotateSignal() {            
+            if (this.type === SignalType.POSITIVE || this.type === SignalType.POSTEMPORARY)
+                this.signalContainer.rotation += -3;
+            else if (this.type === SignalType.NEGATIVE)
+                this.signalContainer.rotation += 6;
+
+            if (this.signalContainer.rotation < -360)
+                this.signalContainer.rotation += 360;
+            else if (this.signalContainer.rotation > 360)
+                this.signalContainer.rotation -= 360;
+        }
 
         checkNodeMessage() {
+            if (this.targetNode.burnedOut)
+                return;
+            
             if (this.targetNode.type === NodeType.ENDLEFT)
                 this.message = SignalMessage.MOVELEFT;
             else if (this.targetNode.type === NodeType.ENDRIGHT)

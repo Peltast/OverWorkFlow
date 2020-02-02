@@ -20,6 +20,8 @@ function preloaderInit() {
         { "src": "tree/ErrorNode.png", id: "ErrorNode" },
         { "src": "tree/IntersectionNode.png", id: "IntersectionNode" },
         { "src": "tree/Signal.png", id: "Signal" }, { "src": "tree/NegativeSignal.png", id: "NegativeSignal" },
+        { "src": "tree/Embers.png", id: "Embers" }, { "src": "tree/FireSignal.png", id: "FireSignal" },
+        { "src": "tree/BurntNode.png", id: "BurntNode" },
         
         { "src": "metadisplay/background.png", id: "Background" },
         { "src": "metadisplay/player.png", id: "Player" },
