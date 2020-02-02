@@ -119,7 +119,7 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
             if (!SignalGeneration[j].node || !SignalGeneration[j].type)
                 continue;
 
-            if (negativeSignalCount >= 5 && SignalGeneration[j].type === SignalType.NEGATIVE)
+            if (negativeSignalCount >= 6 && SignalGeneration[j].type === SignalType.NEGATIVE)
                 continue;
 
             addSignal(SignalGeneration[j].node, SignalGeneration[j].type);

@@ -58,6 +58,10 @@ define("Signal", ['Point'], function(Point) {
                 if (this.targetNode.burnedOut) {
                     if (this.type === SignalType.BURNOUT)
                         node.burnNode();
+                    else if (this.type === SignalType.NEGATIVE) {
+                        playSound("NegativeSignalConfirm", 0.1);
+                        node.switchIntersection();
+                    }
                     this.targetNode = null;
                 }
                 else if (this.targetNode.isEndNode() && this.type === SignalType.NEGATIVE) {
@@ -100,9 +104,9 @@ define("Signal", ['Point'], function(Point) {
         }
         rotateSignal() {            
             if (this.type === SignalType.POSITIVE || this.type === SignalType.POSTEMPORARY)
-                this.signalContainer.rotation += -3;
+                this.signalContainer.rotation += -5;
             else if (this.type === SignalType.NEGATIVE)
-                this.signalContainer.rotation += 6;
+                this.signalContainer.rotation += 10;
 
             if (this.signalContainer.rotation < -360)
                 this.signalContainer.rotation += 360;

@@ -84,9 +84,7 @@ define("MetaGame", ['Point'], function(Point) {
                 this.player.playerContainer.x = this.boundsWidth - this.player.size.X;
 
             for (let i = 0; i < this.stations.length; i++) {
-                if (this.stations[i] == this.activeStation)
-                    continue;
-                this.stations[i].update();
+                this.stations[i].update(this.stations[i] == this.activeStation);
             }
 
             this.checkStationStatus();
@@ -134,9 +132,9 @@ define("MetaGame", ['Point'], function(Point) {
             for (let i = 0; i < this.stations.length; i++) {
                 if (this.player.playerContainer.x > this.stations[i].location.X)
                     continue;
-
+                
                 if (this.player.playerContainer.x <= this.stations[i].location.X &&
-                    this.player.playerContainer.x + this.player.size.X >= this.stations[i].location.X + this.stations[i].size.X) {
+                    this.player.playerContainer.x + this.player.size.X >= this.stations[i].location.X + (this.stations[i].size.X - 24)) {
                         foundStation = this.stations[i];
                 }
             }
@@ -144,7 +142,7 @@ define("MetaGame", ['Point'], function(Point) {
             if (foundStation) {
                 if (!this.activeStation) {
                     this.metagameContainer.addChild(this.cursor);
-                    this.cursor.x = foundStation.location.X + (foundStation.size.X / 2 - 22);
+                    this.cursor.x = (foundStation.location.X - 12) + (foundStation.size.X / 2 - 22);
                 }
                 
                 this.activeStation = foundStation;
@@ -242,7 +240,7 @@ define("MetaGame", ['Point'], function(Point) {
         constructor(location, startingWork = 0) {
             this.location = location;
             this.stationContainer = new createjs.Container();
-            this.size = new Point(52, 120);
+            this.size = new Point(76, 164);
             this.generatingWork = false;
             
             this.workItems = [];
@@ -255,11 +253,13 @@ define("MetaGame", ['Point'], function(Point) {
         drawStation() {
             var spriteSheet = new createjs.SpriteSheet({
                 "images": [gameAssets["Station"]], 
-                "frames": {"width": this.size.X, "height": this.size.Y, "regX": 0, "regY": 0, "count": 1},
-                animations: { idle: 0 }
+                "frames": {"width": this.size.X, "height": this.size.Y, "regX": 0, "regY": 0, "count": 6},
+                animations: { load0: 0, load1: 1, load2: 2, load3: 3, load4: 4, load5: 5 }
             });
             this.stationSprite = new createjs.Sprite(spriteSheet);
-            this.stationSprite.gotoAndPlay("idle");
+            this.stationSprite.gotoAndPlay("load0");
+            this.stationSprite.x = -12;
+            this.stationSprite.y = -44;
 
             this.stationContainer.addChild(this.stationSprite);
             this.stationContainer.x = this.location.X;
@@ -270,7 +270,7 @@ define("MetaGame", ['Point'], function(Point) {
             var y = 100;
 
             for (let i = 0; i < 5; i++) {
-                var item = new WorkItem(startingWork > 0);
+                var item = new WorkItem(i, startingWork > 0);
                 item.workContainer.x = x;
                 item.workContainer.y = y;
                 this.stationContainer.addChild(item.workContainer);
@@ -285,32 +285,27 @@ define("MetaGame", ['Point'], function(Point) {
         generateWork() {
             this.generatingWork = true;
         }
-        update() {
-            if (this.generatingWork) {
-                var count = 0;
+        update(isActiveStation) {
+            var loadCount = 0;
+            for (let i = 0; i < this.workItems.length; i++) {
+                if (this.workItems[i].status === WorkItemState.ACTIVE)
+                    loadCount += 1;
+            }
+            
+            this.stationSprite.gotoAndPlay("load" + loadCount);
 
-                for (let i = 0; i < this.workItems.length; i++) {
-                    var item = this.workItems[i];
-                    if (item.status === WorkItemState.ACTIVE) {
-                        continue;
-                    }
-                    else {
-                        item.increaseWork();
-                        count += 1;
-                        this.overloadCount = 0;
-                        return;
-                    }
+            if (loadCount >= 5) {
+                if (!this.overloaded) {
+                    this.overloaded = true;
+                    playSound("WorkAlarm", 0.5);
                 }
+                this.updateOverloadedStation();
+            }
+            else
+                this.overloaded = false;
 
-                if (count == 0) {
-                    if (!this.overloaded) {
-                        this.overloaded = true;
-                        playSound("WorkAlarm", 0.5);
-                    }
-                    this.updateOverloadedStation();
-                }
-                else
-                    this.overloaded = false;
+            if (this.generatingWork && !isActiveStation) {
+                this.updateStationWorkGen();
             }
         }
         updateOverloadedStation() {
@@ -323,6 +318,19 @@ define("MetaGame", ['Point'], function(Point) {
                 this.overloadCount = 0;
                 SignalGeneration.push({"node": "Root", "type": SignalType.NEGATIVE });
                 playSound("WorkOverflow", 0.05);
+            }
+        }
+        updateStationWorkGen() {
+            for (let i = 0; i < this.workItems.length; i++) {
+                var item = this.workItems[i];
+                if (item.status === WorkItemState.ACTIVE) {
+                    continue;
+                }
+                else {
+                    item.increaseWork();
+                    this.overloadCount = 0;
+                    return;
+                }
             }
         }
 
@@ -349,7 +357,8 @@ define("MetaGame", ['Point'], function(Point) {
     }
 
     class WorkItem {
-        constructor(active = false) {
+        constructor(index, active = false) {
+            this.index = index;
             this.workContainer = new createjs.Container();
             this.active = active;
             this.status = active ? WorkItemState.ACTIVE : WorkItemState.INACTIVE;
@@ -406,8 +415,9 @@ define("MetaGame", ['Point'], function(Point) {
                 this.workShape.scaleY = 0;
                 this.active = false;
                 this.status = WorkItemState.INACTIVE;
-
-                SignalGeneration.push({"node": "Root", "type": SignalType.NEGATIVE });
+                
+                var outputType = this.index % 2 == 0 ? SignalType.POSTEMPORARY : SignalType.NEGATIVE;
+                SignalGeneration.push({"node": "Root", "type": outputType });
                 playSound("WorkProgress", 0.5);
             }
         }
