@@ -53,3 +53,10 @@ function mainInit() {
     }, false);
 };
 
+function playSound(soundName, vol) {
+    var soundInstance = new Howl({
+        src: [SoundRoot + soundAssets[soundName]], oop: false, volume: vol
+    });
+    soundInstance.play();
+}
+

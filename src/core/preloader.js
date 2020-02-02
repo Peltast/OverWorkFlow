@@ -28,7 +28,19 @@ function preloaderInit() {
         { "src": "metadisplay/station.png", id: "Station" }, { "src": "metadisplay/stationCursor.png", id: "StationCursor" }
     ];
     soundManifest = [
+        { src: "8bit_Beep_alarm_03.wav", id:"WorkAlarm" },
+        { src: "8bit_Beep_alarm_02.wav", id:"WorkOverflow" },
+        { src: "Select_01.wav", id:"WorkProgress" },
+        { src: "Arcade_Positive_Jingle_04_1.wav", id:"WorkComplete" },
 
+        { src: "PP_UI_Select_1_3.wav", id:"ClickNode" },
+        { src: "FA_Collect_Coin_1_1.wav", id:"SignalConfirm" },
+        { src: "FA_Bad_Item_1.wav", id:"NegativeSingleConfirm" },
+        { src: "PP_Jump_1_4.wav", id:"PlayerMove" },
+
+        { src: "PP_Small_Impact_1_3.wav", id:"BurnTick" },
+        { src: "PP_Small_Impact_1_2.wav", id:"BurnOut" },
+        { src: "8bit_hit_5.wav", id:"BurnNode" }
     ];
 
     manifestTotal = imageManifest.length + soundManifest.length;

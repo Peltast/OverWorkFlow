@@ -79,6 +79,7 @@ define("MetaGame", ['Point'], function(Point) {
             if (this.activeStation.generatingWork) {
                 this.activeStation.generatingWork = false;
                 this.workGenerationCountdown -= 5000;
+                playSound("WorkComplete", 0.5);
             }
         }
 
@@ -205,6 +206,7 @@ define("MetaGame", ['Point'], function(Point) {
             this.generatingWork = false;
             
             this.workItems = [];
+            this.overloaded = false;
             this.overloadCount = 0;
 
             this.drawStation();
@@ -261,8 +263,14 @@ define("MetaGame", ['Point'], function(Point) {
                 }
 
                 if (count == 0) {
+                    if (!this.overloaded) {
+                        this.overloaded = true;
+                        playSound("WorkAlarm", 0.5);
+                    }
                     this.updateOverloadedStation();
                 }
+                else
+                    this.overloaded = false;
             }
         }
         updateOverloadedStation() {
@@ -274,6 +282,7 @@ define("MetaGame", ['Point'], function(Point) {
             if (this.overloadCount >= 240) {
                 this.overloadCount = 0;
                 SignalGeneration.push({"node": "Root", "type": SignalType.NEGATIVE });
+                playSound("WorkOverflow", 0.05);
             }
         }
 
@@ -359,6 +368,7 @@ define("MetaGame", ['Point'], function(Point) {
                 this.status = WorkItemState.INACTIVE;
 
                 SignalGeneration.push({"node": "Root", "type": SignalType.POSTEMPORARY });
+                playSound("WorkProgress", 0.5);
             }
         }
 

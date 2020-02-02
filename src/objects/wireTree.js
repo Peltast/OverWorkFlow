@@ -148,8 +148,8 @@ define("WireTree", ['Point'], function(Point) {
             this.state = "idle";
             this.burnedOut = false;
 
-            this.burnoutTickTimerThreshold = 500;
-            this.burnoutTickThreshold = 3;
+            this.burnoutTickTimerThreshold = 1500;
+            this.burnoutTickThreshold = 2;
             this.burnoutTickCount = 0;
             this.burnoutLevel = 0;
             this.lastSwitchTime;
@@ -215,6 +215,7 @@ define("WireTree", ['Point'], function(Point) {
             
             this.nodeSprite.on("click", function() {
                 if (targetNode.state == "Press") {
+                    playSound("ClickNode", 0.1);
                     targetNode.switchIntersection();
                 }
                 targetNode.state = "idle";
@@ -222,6 +223,7 @@ define("WireTree", ['Point'], function(Point) {
             });
             this.nodeSprite.on("mouseout", function() {
                 if (targetNode.state == "Press") {
+                    playSound("ClickNode", 0.1);
                     targetNode.switchIntersection();
                 }
                 targetNode.state = "idle";
@@ -333,6 +335,8 @@ define("WireTree", ['Point'], function(Point) {
                 this.burnoutTickCount = 0;
 
                 this.burnoutLevel += 1;
+                playSound("BurnTick", 0.5);
+
                 if (this.burnoutLevel <= 3)
                     this.drawBurnoutLevel(this.burnoutLevel);
                 else
@@ -342,6 +346,7 @@ define("WireTree", ['Point'], function(Point) {
         createFireSignal() {
             this.burnoutLevel = 0;
             this.drawBurnoutLevel(this.burnoutLevel);
+            playSound("BurnOut", 0.5);
 
             SignalGeneration.push({"node": this.id, "type": SignalType.BURNOUT });
         }
@@ -353,6 +358,7 @@ define("WireTree", ['Point'], function(Point) {
             this.nodeContainer.addChild(this.burntSprite);
             this.burnoutLevel = 3;
             this.drawBurnoutLevel(3);
+            playSound("BurnNode", 0.5);
         }
         coolOffNode() {
             this.burnedOut = false;
@@ -369,7 +375,10 @@ define("WireTree", ['Point'], function(Point) {
                 return;
 
             this.cooldownTimer += deltaTime;
-            if (this.cooldownTimer >= this.burnoutTickTimerThreshold * 5) {
+            var cooldownThreshold = this.burnoutTickTimerThreshold * 2;
+            if (this.burnedOut)
+                cooldownThreshold *= 2;
+            if (this.cooldownTimer >= cooldownThreshold) {
                 this.cooldownTimer = 0;
 
                 this.burnoutLevel -= 1;

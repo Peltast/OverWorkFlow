@@ -134,6 +134,7 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
     
     function handleSignalMessage(message) {
         if (message === SignalMessage.MOVELEFT || message === SignalMessage.MOVECENTER || message === SignalMessage.MOVERIGHT) {
+            playSound("SignalConfirm", 0.01);
             MetaGameArea.changePlayerMovement(message);
         }
     }

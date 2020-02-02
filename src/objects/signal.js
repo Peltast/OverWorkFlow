@@ -62,6 +62,8 @@ define("Signal", ['Point'], function(Point) {
                 }
                 else if (this.targetNode.isEndNode() && this.type === SignalType.NEGATIVE) {
                     this.targetNode = null;
+                    
+                    playSound("NegativeSignalConfirm", 0.1);
                     node.switchIntersection();
                 }
             }
