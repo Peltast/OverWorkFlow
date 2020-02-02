@@ -2,20 +2,25 @@ define("Signal", ['Point'], function(Point) {
 
     class Signal {
 
-        constructor() {
+        constructor(type) {
             this.location = new Point(0, 0);
             this.signalContainer = new createjs.Container();
             this.targetNode;
             this.currentConnection;
             this.message = null;
 
+            this.type = type; 
+
             this.spriteSize = new Point(44, 44);
 
             this.drawSignal();
         }
         drawSignal() {
+            var spriteName = "Signal";
+            if (this.type === SignalType.NEGATIVE)
+                spriteName = "NegativeSignal";
             var spriteSheet = new createjs.SpriteSheet({
-                "images": [gameAssets["Signal"]], 
+                "images": [gameAssets[spriteName]], 
                 "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 22, "regY": 22, "count": 1},
                 animations: { idle: 0 }
             });
@@ -35,6 +40,11 @@ define("Signal", ['Point'], function(Point) {
             if (nextNodeData != null) {
                 this.targetNode = nextNodeData.node;
                 this.currentConnection = nextNodeData.connection;
+
+                if (this.targetNode.isEndNode() && this.type === SignalType.NEGATIVE) {
+                    this.targetNode = null;
+                    node.switchIntersection();
+                }
             }
             else {
                 this.targetNode = null;
@@ -45,7 +55,8 @@ define("Signal", ['Point'], function(Point) {
         update(deltaTime) {
             var dT = deltaTime / 8;
 
-            this.signalContainer.rotation -= 3;
+            this.signalContainer.rotation += this.type === SignalType.NEGATIVE ? 6 : -3;
+
             if (this.signalContainer.rotation < -360)
                 this.signalContainer.rotation += 360;
 

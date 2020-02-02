@@ -62,10 +62,10 @@ define("WireTree", ['Point'], function(Point) {
             this.addChildNode(row3RR, row4endRNull);
 
             row1.setIntersection("left");
-            row2Left.setIntersection("left");
-            row2Right.setIntersection("right");
-            row3LL.setIntersection("right");
-            row3LR.setIntersection("left");
+            row2Left.setIntersection("right");
+            row2Right.setIntersection("left");
+            row3LL.setIntersection("left");
+            row3LR.setIntersection("right");
             row3RL.setIntersection("left");
             row3RR.setIntersection("right");
 
@@ -101,6 +101,9 @@ define("WireTree", ['Point'], function(Point) {
 
         addSignal(newSignal) {
             this.signalLayer.addChild(newSignal.signalContainer);
+        }
+        removeSignal(oldSignal) {
+            this.signalLayer.removeChild(oldSignal.signalContainer);
         }
 
         getConnectionCurve(parent, child) {
@@ -199,20 +202,23 @@ define("WireTree", ['Point'], function(Point) {
             
             this.nodeSprite.on("click", function() {
                 if (targetNode.state == "Press") {
-                    targetNode.setIntersection(targetNode.orientation == "left" ? "right" : "left");
+                    targetNode.switchIntersection();
                 }
                 targetNode.state = "idle";
                 targetNode.nodeSprite.gotoAndPlay(targetNode.orientation + targetNode.state);
             });
             this.nodeSprite.on("mouseout", function() {
                 if (targetNode.state == "Press") {
-                    targetNode.setIntersection(targetNode.orientation == "left" ? "right" : "left");
+                    targetNode.switchIntersection();
                 }
                 targetNode.state = "idle";
                 targetNode.nodeSprite.gotoAndPlay(targetNode.orientation + targetNode.state);
             });
         }
 
+        switchIntersection() {
+            this.setIntersection(this.orientation == "left" ? "right" : "left");
+        }
         setIntersection(newDirection = "") {
             if (this.type !== NodeType.INTERSECTION)
                 return;
@@ -241,6 +247,13 @@ define("WireTree", ['Point'], function(Point) {
             else {
                 return null;
             }
+        }
+
+        isEndNode() {
+            return (
+                this.type === NodeType.ENDCENTER || this.type === NodeType.ENDLEFT || this.type === NodeType.ENDLEFTNULL ||
+                this.type === NodeType.ENDCENTER || this.type === NodeType.ENDRIGHT || this.type === NodeType.ENDRIGHTNULL
+            );
         }
 
     }

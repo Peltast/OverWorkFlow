@@ -66,15 +66,20 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
         ExecutiveTree.treeContainer.y = StageHeight * .05;
         TreeGameArea.addChild(ExecutiveTree.treeContainer);
 
-        addSignal("Row1");
-        addSignal("Row2Right");
-        addSignal("Row3RL");
+        addSignal("Row1", SignalType.POSITIVE);
+        addSignal("Row2Right", SignalType.POSITIVE);
+        addSignal("Row3RL", SignalType.POSITIVE);
     }
-    function addSignal(startNodeID) {
-        var signal = new Signal();
+
+    function addSignal(startNodeID, signalType) {
+        var signal = new Signal(signalType);
         signal.setSignalToNode(ExecutiveTree.nodeMap[startNodeID]);
         GameSignals.push(signal);
         ExecutiveTree.addSignal(signal);
+    }
+    function removeSignal(signal) {
+        ExecutiveTree.removeSignal(signal);
+        GameSignals.splice(GameSignals.indexOf(signal), 1);
     }
 
     function createMetaGame() {
@@ -85,6 +90,7 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
     }
 
     function runGame(deltaTime) {
+        var removeList = [];
 
         GameSignals.forEach((signal) => {
             signal.update(deltaTime);
@@ -94,10 +100,22 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
                 signal.message = null;
             }
 
-            if (signal.targetNode == null)
+            if (signal.targetNode == null) {
+                if (signal.type !== SignalType.POSITIVE)
+                    removeList.push(signal);
+
                 signal.setSignalToNode(ExecutiveTree.rootNode);
+            }
             
         });
+        for (let i = 0; i < removeList.length; i++)
+            removeSignal(removeList[i]);
+        for (let j = 0; j < SignalGeneration.length; j++) {
+            if (!SignalGeneration[j].node || !SignalGeneration[j].type)
+                continue;
+            addSignal(SignalGeneration[j].node, SignalGeneration[j].type);
+        }
+        SignalGeneration = [];
 
         MetaGameArea.update(deltaTime);
 
