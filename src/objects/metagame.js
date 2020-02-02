@@ -17,6 +17,7 @@ define("MetaGame", ['Point'], function(Point) {
 
             this.drawDisplay();
             this.drawCursor();
+            this.drawScoreBoard();
         }
         drawDisplay() {
             var spriteSheet = new createjs.SpriteSheet({
@@ -29,7 +30,7 @@ define("MetaGame", ['Point'], function(Point) {
 
             this.player = new Player();
             this.player.playerContainer.x = this.boundsWidth / 2 - this.player.size.X / 2;
-            this.player.playerContainer.y = 244;
+            this.player.playerContainer.y = 232;
             this.metagameContainer.addChild(this.player.playerContainer);
 
             this.columnPositions.push(15);
@@ -48,7 +49,6 @@ define("MetaGame", ['Point'], function(Point) {
                 this.drawColumnCursor(this.columnPositions[i]);
 
             this.player.setColumnPosition(this.columnPositions[5], 5);
-            console.log(this.columnPositions);
         }
         drawColumnCursor(xPos) {
             var spriteSheet = new createjs.SpriteSheet({
@@ -74,8 +74,28 @@ define("MetaGame", ['Point'], function(Point) {
             this.cursor.gotoAndPlay("idle");
         }
 
-        update(deltaTime) {
+        drawScoreBoard() {
+            this.scoreText = new createjs.Text(GameScore, "64px Equipment", "#fff1e8");
+            this.scoreOutline = new createjs.Text(GameScore, "64px Equipment", "#ff004d");
+            this.scoreOutline.outline = 8;
 
+            this.scoreText.x = this.boundsWidth / 2 - this.scoreText.getMeasuredWidth() / 2;
+            this.scoreText.y = StageHeight * 0.1;
+            this.scoreOutline.x = this.scoreText.x;
+            this.scoreOutline.y = this.scoreText.y;
+
+            this.metagameContainer.addChild(this.scoreOutline);
+            this.metagameContainer.addChild(this.scoreText);
+        }
+        updateScore() {
+            this.scoreText.text = GameScore;
+            this.scoreOutline.text = GameScore;
+            this.scoreText.x = this.boundsWidth / 2 - this.scoreText.getMeasuredWidth() / 2;
+            this.scoreOutline.x = this.scoreText.x;
+        }
+
+        update(deltaTime) {
+            this.updateScore();
             this.player.update(deltaTime);
             
             if (this.player.playerContainer.x < 0)
@@ -179,7 +199,7 @@ define("MetaGame", ['Point'], function(Point) {
     class Player {
         constructor() {
             this.playerContainer = new createjs.Container();
-            this.size = new Point(84, 188);
+            this.size = new Point(84, 200);
             this.maxSpeed = 0.5;
             this.speedIncrement = 0.15;
             this.currentSpeed = 0;
@@ -419,6 +439,8 @@ define("MetaGame", ['Point'], function(Point) {
                 var outputType = this.index % 2 == 0 ? SignalType.POSTEMPORARY : SignalType.NEGATIVE;
                 SignalGeneration.push({"node": "Root", "type": outputType });
                 playSound("WorkProgress", 0.5);
+
+                GameScore += 1;
             }
         }
 

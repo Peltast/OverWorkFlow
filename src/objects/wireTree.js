@@ -19,8 +19,8 @@ define("WireTree", ['Point'], function(Point) {
         }
 
         setupTree() {
-            var row1Y = StageHeight * .25 - 50;
-            var row2Y = StageHeight * .38 - 50;
+            var row1Y = StageHeight * .22 - 50;
+            var row2Y = StageHeight * .35 - 50;
             var row3Y = StageHeight * .55 - 50;
             var row4Y = StageHeight * .75 - 50;
             var row5Y = StageHeight * .92 - 50;
@@ -467,7 +467,7 @@ define("WireTree", ['Point'], function(Point) {
                 this.connectionContainer.removeChild(this.connectionLine);
             
             this.connectionLine = new createjs.Shape();
-            this.connectionLine.graphics.setStrokeStyle(3);
+            this.connectionLine.graphics.setStrokeStyle(4);
             this.connectionLine.graphics.beginStroke(this.active ? this.activeColor : this.inactiveColor);
 
             if (this.isBezierCurve()) {

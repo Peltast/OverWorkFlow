@@ -13,6 +13,7 @@ var ImageRoot = "./lib/images/";
 var SoundRoot = "./lib/sounds/";
 
 var GameStatus;
+var GameScore = 0;
 var SignalGeneration = [];
 
 const GameState = {

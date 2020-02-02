@@ -28,6 +28,8 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
         else if (GameStatus === GameState.PRELOADING) {
             GameStatus = GameState.PRELOADED;
             launchGame();
+            
+            addEventListener("keyup", onKeyUp);
         }
         else if (GameStatus === GameState.RUNNING) {
             var currentTime = new Date().getTime();
@@ -35,6 +37,17 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
             lastFrameTimestamp = currentTime;
 
             runGame(deltaTime);
+        }
+    }
+    function onKeyUp(event) {
+        if (event.keyCode == 82 && GameStatus === GameState.RUNNING) {
+            Stage.removeAllChildren();
+
+            ExecutiveTree = null;
+            GameSignals = [];
+            SignalGeneration = [];
+            GameScore = 0;
+            launchGame();
         }
     }
 
@@ -66,8 +79,7 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
         ExecutiveTree.treeContainer.y = StageHeight * .05;
         TreeGameArea.addChild(ExecutiveTree.treeContainer);
 
-        addSignal("Row1", SignalType.POSITIVE);
-        // addSignal("Row2Right", SignalType.POSITIVE);
+        addSignal("Root", SignalType.POSITIVE);
         addSignal("Row3RL", SignalType.POSITIVE);
     }
 
