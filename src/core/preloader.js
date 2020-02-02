@@ -24,7 +24,7 @@ function preloaderInit() {
         { "src": "tree/BurntNode.png", id: "BurntNode" },
         
         { "src": "metadisplay/background.png", id: "Background" },
-        { "src": "metadisplay/player.png", id: "Player" },
+        { "src": "metadisplay/player.png", id: "Player" }, {"src": "metadisplay/columnCursor.png", id: "ColumnCursor" },
         { "src": "metadisplay/station.png", id: "Station" }, { "src": "metadisplay/stationCursor.png", id: "StationCursor" }
     ];
     soundManifest = [

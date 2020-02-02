@@ -20,9 +20,10 @@ define("WireTree", ['Point'], function(Point) {
 
         setupTree() {
             var row1Y = StageHeight * .25 - 50;
-            var row2Y = StageHeight * .5 - 50;
-            var row3Y = StageHeight * .75 - 50;
-            var row4Y = StageHeight * .92 - 50;
+            var row2Y = StageHeight * .38 - 50;
+            var row3Y = StageHeight * .55 - 50;
+            var row4Y = StageHeight * .75 - 50;
+            var row5Y = StageHeight * .92 - 50;
 
             var root = this.createNode("Root", NodeType.ROOT, new Point(0, 0));
             var row1 = this.createNode("Row1", NodeType.INTERSECTION, new Point(0, row1Y));
@@ -35,11 +36,18 @@ define("WireTree", ['Point'], function(Point) {
             var row3RL = this.createNode("Row3RL", NodeType.INTERSECTION, new Point(50, row3Y));
             var row3RR = this.createNode("Row3RR", NodeType.INTERSECTION, new Point(150, row3Y));
 
-            var row4endLNull = this.createNode("Row4LNull", NodeType.ENDRIGHT, new Point(-200, row4Y));
-            var row4endLeft = this.createNode("Row4endLeft", NodeType.ENDLEFT, new Point(-100, row4Y));
-            var row4endCenter = this.createNode("Row4endCenter", NodeType.ENDCENTER, new Point(0, row4Y));
-            var row4endRight = this.createNode("Row4endRight", NodeType.ENDRIGHT, new Point(100, row4Y));
-            var row4endRNull = this.createNode("Row4RNull", NodeType.ENDLEFT, new Point(200, row4Y));
+            var row4_1 = this.createNode("Row4_1", NodeType.INTERSECTION, new Point(-175, row4Y));
+            var row4_2 = this.createNode("row4_2", NodeType.INTERSECTION, new Point(-88, row4Y));
+            var row4_3 = this.createNode("row4_3", NodeType.INTERSECTION, new Point(0, row4Y));
+            var row4_4 = this.createNode("row4_4", NodeType.INTERSECTION, new Point(88, row4Y));
+            var row4_5 = this.createNode("row4_5", NodeType.INTERSECTION, new Point(175, row4Y));
+            
+            var row5_1 = this.createNode("Row5_1", NodeType.ENDLEFT, new Point(-200, row5Y));
+            var row5_2 = this.createNode("Row5_2", NodeType.ENDCENTER, new Point(-125, row5Y));
+            var row5_3 = this.createNode("Row5_3", NodeType.ENDLEFT, new Point(-40, row5Y));
+            var row5_4 = this.createNode("Row5_4", NodeType.ENDRIGHT, new Point(40, row5Y));
+            var row5_5 = this.createNode("Row5_5", NodeType.ENDCENTER, new Point(125, row5Y));
+            var row5_6 = this.createNode("Row5_6", NodeType.ENDRIGHT, new Point(200, row5Y));
 
             this.addChildNode(root, row1);
 
@@ -51,22 +59,44 @@ define("WireTree", ['Point'], function(Point) {
             this.addChildNode(row2Right, row3RL);
             this.addChildNode(row2Right, row3RR);
             
-            this.addChildNode(row3LL, row4endLNull);
-            this.addChildNode(row3LL, row4endLeft);
-            this.addChildNode(row3LR, row4endLeft);
-            this.addChildNode(row3LR, row4endCenter);
-            this.addChildNode(row3RL, row4endCenter);
-            this.addChildNode(row3RL, row4endRight);
-            this.addChildNode(row3RR, row4endRight);
-            this.addChildNode(row3RR, row4endRNull);
+            this.addChildNode(row3LL, row4_1);
+            this.addChildNode(row3LL, row4_2);
+            this.addChildNode(row3LR, row4_2);
+            this.addChildNode(row3LR, row4_3);
+            this.addChildNode(row3RL, row4_3);
+            this.addChildNode(row3RL, row4_4);
+            this.addChildNode(row3RR, row4_4);
+            this.addChildNode(row3RR, row4_5);
+            
+            this.addChildNode(row4_1, row5_1);
+            this.addChildNode(row4_1, row5_2);
+            
+            this.addChildNode(row4_2, row5_2);
+            this.addChildNode(row4_2, row5_3);
+            
+            this.addChildNode(row4_3, row5_3);
+            this.addChildNode(row4_3, row5_4);
+            
+            this.addChildNode(row4_4, row5_4);
+            this.addChildNode(row4_4, row5_5);
+
+            this.addChildNode(row4_5, row5_5);
+            this.addChildNode(row4_5, row5_6);
 
             row1.setIntersection("left");
             row2Left.setIntersection("right");
             row2Right.setIntersection("left");
-            row3LL.setIntersection("left");
-            row3LR.setIntersection("right");
-            row3RL.setIntersection("left");
-            row3RR.setIntersection("right");
+
+            row3LL.setIntersection("right");
+            row3LR.setIntersection("left");
+            row3RL.setIntersection("right");
+            row3RR.setIntersection("left");
+            
+            row4_1.setIntersection("right");
+            row4_2.setIntersection("left");
+            row4_3.setIntersection("left");
+            row4_4.setIntersection("right");
+            row4_5.setIntersection("left");
 
             this.rootNode = root;
         }
@@ -148,9 +178,9 @@ define("WireTree", ['Point'], function(Point) {
             this.state = "idle";
             this.burnedOut = false;
 
-            this.burnoutTickTimerThreshold = 1500;
+            this.burnoutTickTimerThreshold = 2000;
             this.burnoutTickThreshold = 2;
-            this.burnoutTickCount = 0;
+            this.burnoutTickCount = 1;
             this.burnoutLevel = 0;
             this.lastSwitchTime;
             this.cooldownTimer = 0;

@@ -67,7 +67,7 @@ require(['WireTree', 'Signal', 'MetaGame'], function(WireTree, Signal, MetaGame)
         TreeGameArea.addChild(ExecutiveTree.treeContainer);
 
         addSignal("Row1", SignalType.POSITIVE);
-        addSignal("Row2Right", SignalType.POSITIVE);
+        // addSignal("Row2Right", SignalType.POSITIVE);
         addSignal("Row3RL", SignalType.POSITIVE);
     }
 

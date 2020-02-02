@@ -6,12 +6,13 @@ define("MetaGame", ['Point'], function(Point) {
             this.metagameContainer = new createjs.Container();
 
             this.player;
+            this.columnPositions = [];
             this.stations = [];
             this.activeStation;
 
             this.boundsWidth = 468;
 
-            this.workGenerationInterval = 25000;
+            this.workGenerationInterval = 20000;
             this.workGenerationCountdown = this.workGenerationInterval / 5;
 
             this.drawDisplay();
@@ -31,13 +32,37 @@ define("MetaGame", ['Point'], function(Point) {
             this.player.playerContainer.y = 244;
             this.metagameContainer.addChild(this.player.playerContainer);
 
-            for (let x = 28; x <= 416; x += 36) {
+            this.columnPositions.push(15);
+
+            for (let x = 34; x <= 416; x += 35) {
                 var station = new Station(new Point(x, 356), 0);
                 this.stations.push(station);
                 this.metagameContainer.addChild(station.stationContainer);
+
+                this.columnPositions.push(x + 25);
+                this.columnPositions.push(x + 68);
+
                 x += 52;
             }
+            for (let i = 0; i < this.columnPositions.length; i++)
+                this.drawColumnCursor(this.columnPositions[i]);
+
+            this.player.setColumnPosition(this.columnPositions[5], 5);
+            console.log(this.columnPositions);
         }
+        drawColumnCursor(xPos) {
+            var spriteSheet = new createjs.SpriteSheet({
+                "images": [gameAssets["ColumnCursor"]], 
+                "frames": {"width": 36, "height": 20, "regX": 0, "regY": 0, "count": 1},
+                animations: { idle: 0 }
+            });
+            var column = new createjs.Sprite(spriteSheet);
+            column.x = xPos - 18;
+            column.y = 502;
+            column.gotoAndPlay("idle");
+            this.metagameContainer.addChild(column);
+        }
+
         drawCursor() {
             var spriteSheet = new createjs.SpriteSheet({
                 "images": [gameAssets["StationCursor"]], 
@@ -84,14 +109,23 @@ define("MetaGame", ['Point'], function(Point) {
         }
 
         changePlayerMovement(message) {
+            var column = this.player.currentColumn;
             if (message === SignalMessage.MOVELEFT) {
-                this.player.sendDirectionMessage("left");
+                column -= 1;
+                if (column < 0)
+                    column = 0;
+                this.player.setColumnPosition(this.columnPositions[column], column);
+                // this.player.sendDirectionMessage("left");
             }
             else if (message === SignalMessage.MOVECENTER) {
-                this.player.sendDirectionMessage("idle");
+                // this.player.sendDirectionMessage("idle");
             }
             else if (message === SignalMessage.MOVERIGHT) {
-                this.player.sendDirectionMessage("right");
+                column += 1;
+                if (column >= this.columnPositions.length)
+                    column = this.columnPositions.length - 1;
+                this.player.setColumnPosition(this.columnPositions[column], column);
+                // this.player.sendDirectionMessage("right");
             }
         }
 
@@ -153,6 +187,8 @@ define("MetaGame", ['Point'], function(Point) {
             this.currentSpeed = 0;
             this.state = "idle";
 
+            this.currentColumn = 5;
+
             this.drawPlayer();
         }
         drawPlayer() {
@@ -169,31 +205,35 @@ define("MetaGame", ['Point'], function(Point) {
 
         update(deltaTime) {
 
-            this.playerContainer.x += this.currentSpeed * (deltaTime / 16);
+            // this.playerContainer.x += this.currentSpeed * (deltaTime / 16);
+        }
+        setColumnPosition(xPos, index) {
+            this.playerContainer.x = xPos - this.size.X / 2;
+            this.currentColumn = index;
         }
 
         sendDirectionMessage(direction) {
-            if (this.state === direction) {
-                if (direction == "left")
-                    this.currentSpeed -= this.speedIncrement;
-                else if (direction == "right")
-                    this.currentSpeed += this.speedIncrement;
+            // if (this.state === direction) {
+            //     if (direction == "left")
+            //         this.currentSpeed -= this.speedIncrement;
+            //     else if (direction == "right")
+            //         this.currentSpeed += this.speedIncrement;
                 
-                if (this.currentSpeed < -this.maxSpeed)
-                    this.currentSpeed = -this.maxSpeed;
-                else if (this.currentSpeed > this.maxSpeed)
-                    this.currentSpeed = this.maxSpeed;
-            }
-            else {
-                if (direction == "left")
-                    this.currentSpeed = -this.speedIncrement;
-                else if (direction == "right")
-                    this.currentSpeed = this.speedIncrement;
-                else
-                    this.currentSpeed = 0;
-            }
+            //     if (this.currentSpeed < -this.maxSpeed)
+            //         this.currentSpeed = -this.maxSpeed;
+            //     else if (this.currentSpeed > this.maxSpeed)
+            //         this.currentSpeed = this.maxSpeed;
+            // }
+            // else {
+            //     if (direction == "left")
+            //         this.currentSpeed = -this.speedIncrement;
+            //     else if (direction == "right")
+            //         this.currentSpeed = this.speedIncrement;
+            //     else
+            //         this.currentSpeed = 0;
+            // }
 
-            this.state = direction;
+            // this.state = direction;
         }
 
     }
@@ -367,7 +407,7 @@ define("MetaGame", ['Point'], function(Point) {
                 this.active = false;
                 this.status = WorkItemState.INACTIVE;
 
-                SignalGeneration.push({"node": "Root", "type": SignalType.POSTEMPORARY });
+                SignalGeneration.push({"node": "Root", "type": SignalType.NEGATIVE });
                 playSound("WorkProgress", 0.5);
             }
         }
