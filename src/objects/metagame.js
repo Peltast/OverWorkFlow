@@ -11,7 +11,7 @@ define("MetaGame", ['Point'], function(Point) {
 
             this.boundsWidth = 468;
 
-            this.workGenerationInterval = 30000;
+            this.workGenerationInterval = 25000;
             this.workGenerationCountdown = this.workGenerationInterval / 5;
 
             this.drawDisplay();
@@ -31,7 +31,7 @@ define("MetaGame", ['Point'], function(Point) {
             this.player.playerContainer.y = 244;
             this.metagameContainer.addChild(this.player.playerContainer);
 
-            for (let x = 36; x <= 416; x += 36) {
+            for (let x = 28; x <= 416; x += 36) {
                 var station = new Station(new Point(x, 356), 0);
                 this.stations.push(station);
                 this.metagameContainer.addChild(station.stationContainer);
@@ -69,9 +69,15 @@ define("MetaGame", ['Point'], function(Point) {
 
             if (this.activeStation) {
                 this.activeStation.reduceStationWork(deltaTime);
-                if (!this.activeStation.stationHasWork())
-                    this.activeStation.generatingWork = false;
+                if (!this.activeStation.stationHasWork()) {
+                    this.stationWorkComplete();
+                }
             }
+        }
+
+        stationWorkComplete() {
+            this.activeStation.generatingWork = false;
+            this.workGenerationCountdown -= 5000;
         }
 
         changePlayerMovement(message) {
@@ -128,6 +134,7 @@ define("MetaGame", ['Point'], function(Point) {
                 if (stationRoulette.length == 0)
                     return;
                 var rouletteSpin = Math.floor( Math.random() * stationRoulette.length);
+                console.log("Generating work at station index " + rouletteSpin);
                 this.stations[rouletteSpin].generateWork();
             }
 
@@ -140,7 +147,7 @@ define("MetaGame", ['Point'], function(Point) {
             this.playerContainer = new createjs.Container();
             this.size = new Point(84, 188);
             this.maxSpeed = 0.5;
-            this.speedIncrement = 0.1;
+            this.speedIncrement = 0.15;
             this.currentSpeed = 0;
             this.state = "idle";
 
@@ -253,7 +260,6 @@ define("MetaGame", ['Point'], function(Point) {
             for (let i = this.workItems.length - 1; i >= 0; i--) {
                 var item = this.workItems[i];
                 if (item.status !== WorkItemState.INACTIVE) {
-                    console.log("Index: " + i + ", " + item.status);
                     item.reduceWork();
                     return;
                 }

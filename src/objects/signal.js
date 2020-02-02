@@ -16,7 +16,7 @@ define("Signal", ['Point'], function(Point) {
         drawSignal() {
             var spriteSheet = new createjs.SpriteSheet({
                 "images": [gameAssets["Signal"]], 
-                "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 0, "regY": 0, "count": 1},
+                "frames": {"width": this.spriteSize.X, "height": this.spriteSize.Y, "regX": 22, "regY": 22, "count": 1},
                 animations: { idle: 0 }
             });
             this.signalSprite = new createjs.Sprite(spriteSheet);
@@ -28,8 +28,8 @@ define("Signal", ['Point'], function(Point) {
         setSignalToNode(node) {
             this.location = node.origin.get();
 
-            this.signalContainer.x = this.location.X - this.spriteSize.X / 2;
-            this.signalContainer.y = this.location.Y - this.spriteSize.Y / 2;
+            this.signalContainer.x = 15 + this.location.X - this.spriteSize.X / 2;
+            this.signalContainer.y = 12 + this.location.Y - this.spriteSize.Y / 2;
 
             var nextNodeData = node.getTargetNodeData();
             if (nextNodeData != null) {
@@ -43,7 +43,11 @@ define("Signal", ['Point'], function(Point) {
         }
 
         update(deltaTime) {
-            var dT = deltaTime / 15;
+            var dT = deltaTime / 8;
+
+            this.signalContainer.rotation -= 3;
+            if (this.signalContainer.rotation < -360)
+                this.signalContainer.rotation += 360;
 
             if (this.currentConnection) {
                 if (this.currentConnection.isBezierCurve()) {
@@ -92,8 +96,8 @@ define("Signal", ['Point'], function(Point) {
             var bezierProgress = this.getBezierPoint(deltaY / totalDistance, start, bezierA, bezierB, end);
             this.location.X = bezierProgress.X;
             this.location.Y += dT;
-            this.signalContainer.x = this.location.X - this.spriteSize.X / 2;
-            this.signalContainer.y = this.location.Y - this.spriteSize.Y / 2;
+            this.signalContainer.x = 15 + this.location.X - this.spriteSize.X / 2;
+            this.signalContainer.y = 12 + this.location.Y - this.spriteSize.Y / 2;
         }
         getBezierPoint(dT, start, c1, c2, end) {
             var tI = (1 - dT);
